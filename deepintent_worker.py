@@ -57,14 +57,37 @@ class DeepIntentWorker(QThread):
             return None
 
     def receive_feedback(self, text: str, is_positive: bool) -> dict | None:
-        """主线程调用：向 Core 反馈用户评价"""
-        if self.core is None:
-            return None
+        """主线程调用：向 Core 反馈用户评价，并持久化到磁盘"""
+        result = None
+        if self.core is not None:
+            try:
+                result = self.core.receive_user_feedback(text, is_positive=is_positive)
+            except Exception as e:
+                self.logger.warning(f"core.receive_user_feedback failed: {e}")
+        # ── P1: 反馈持久化 ──
         try:
-            return self.core.receive_user_feedback(text, is_positive=is_positive)
+            self._persist_feedback(text, is_positive)
         except Exception as e:
-            self.logger.warning(f"receive_feedback failed: {e}")
-            return None
+            self.logger.warning(f"feedback persistence failed: {e}")
+        return result
+
+    def _persist_feedback(self, text: str, is_positive: bool):
+        """将反馈追加写入 ~/.kimi/kimi-x-desktop/feedback/<project>.jsonl"""
+        feedback_dir = Path.home() / ".kimi" / "kimi-x-desktop" / "feedback"
+        feedback_dir.mkdir(parents=True, exist_ok=True)
+        # 用 project_root 的目录名作为文件名
+        project_name = self.project_root.name or "default"
+        safe_name = "".join(c if c.isalnum() or c in "-_" else "_" for c in project_name)
+        file_path = feedback_dir / f"{safe_name}.jsonl"
+        record = {
+            "timestamp": time.time(),
+            "text": text,
+            "is_positive": is_positive,
+            "project_root": str(self.project_root),
+        }
+        with open(file_path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+        self.logger.info(f"Feedback persisted: {file_path.name} ({'+' if is_positive else '-'}) text={text[:30]}")
 
     def shutdown_core(self):
         """主线程调用：优雅关闭常驻 Core"""
@@ -211,6 +234,19 @@ class DeepIntentWorker(QThread):
             self.result["persistence_stats"] = stats
         except Exception:
             self.result["persistence_stats"] = {}
+
+        # ── P0: 读取项目记忆 ──
+        try:
+            pm_file = self.project_root / ".kimi-x" / "PROJECT.md"
+            if pm_file.exists():
+                self.result["project_memory"] = pm_file.read_text(encoding="utf-8")
+                self.result["has_project_memory"] = True
+                self.status_update.emit("[ok] 项目记忆已加载", "success")
+            else:
+                self.result["has_project_memory"] = False
+        except Exception as e:
+            self.result["has_project_memory"] = False
+            self.logger.warning(f"Project memory read failed: {e}")
 
     def _resident_loop(self):
         """常驻守护循环：每 60 秒自动保存一次，CPU 占用几乎为零"""

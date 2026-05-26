@@ -145,6 +145,16 @@ window.updateDeepIntent = function(data) {
         renderStatusRow('关键决策', `${count} 个文件`, 'info') +
         renderStatusRow('历史会话', '见历史', 'info');
 
+    // 项目记忆
+    const pmCard = document.getElementById('project-memory-card');
+    const pmContent = document.getElementById('project-memory-content');
+    if (data.has_project_memory && data.project_memory) {
+        pmCard.style.display = '';
+        pmContent.textContent = data.project_memory;
+    } else {
+        pmCard.style.display = 'none';
+    }
+
     // 启用按钮
     document.getElementById('btn-diagnose').disabled = false;
     document.getElementById('btn-evolve').disabled = false;

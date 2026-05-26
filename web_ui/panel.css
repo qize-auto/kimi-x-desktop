@@ -224,6 +224,20 @@ body {
     background: #388bfd;
 }
 
+/* 项目记忆内容 */
+.project-memory-content {
+    font-size: 12px;
+    line-height: 1.6;
+    color: #c9d1d9;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.project-memory-content::-webkit-scrollbar { width: 4px; }
+.project-memory-content::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+
 /* iframe 占满全屏 */
 #kimi-frame-container {
     width: 100vw;

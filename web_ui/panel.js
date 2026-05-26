@@ -145,26 +145,6 @@ window.updateDeepIntent = function(data) {
         renderStatusRow('关键决策', `${count} 个文件`, 'info') +
         renderStatusRow('历史会话', '见历史', 'info');
 
-    // GitHub 状态
-    const ghDot = document.getElementById('gh-dot');
-    const ghUser = document.getElementById('gh-user');
-    if (data.github) {
-        const gh = data.github;
-        if (gh.authenticated && gh.username) {
-            ghDot.className = 'status-dot success';
-            ghUser.textContent = gh.username;
-            ghUser.className = 'status-value success';
-        } else if (gh.authenticated) {
-            ghDot.className = 'status-dot success';
-            ghUser.textContent = '已认证';
-            ghUser.className = 'status-value success';
-        } else {
-            ghDot.className = 'status-dot neutral';
-            ghUser.textContent = '未配置';
-            ghUser.className = 'status-value neutral';
-        }
-    }
-
     // 项目记忆
     const pmCard = document.getElementById('project-memory-card');
     const pmContent = document.getElementById('project-memory-content');

@@ -433,9 +433,7 @@ class MainWindow(QMainWindow):
     def _inject_di_status(self, result: dict):
         """通过 runJavaScript 更新 HTML 面板状态"""
         try:
-            payload = dict(result)
-            payload["github"] = self.config.github
-            js_data = json.dumps(payload, ensure_ascii=False)
+            js_data = json.dumps(result, ensure_ascii=False)
             self.webview.page().runJavaScript(f"updateDeepIntent({js_data})")
             self.logger.debug("DI status injected to web panel")
         except Exception as e:

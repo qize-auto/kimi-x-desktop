@@ -1,0 +1,302 @@
+/* DeepIntent 侧边面板 — GitHub Dark 风格 */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+}
+
+#app {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* 左侧面板 — 默认隐藏，悬浮覆盖 */
+#di-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 300px;
+    height: 100vh;
+    background: #161b22;
+    border-right: 1px solid #30363d;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 200;
+    transform: translateX(-100%);
+    box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+}
+
+#di-panel.open {
+    transform: translateX(0);
+}
+
+/* 遮罩层 — 面板打开时覆盖 iframe */
+#di-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.3);
+    z-index: 150;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+#di-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#di-panel::-webkit-scrollbar { width: 4px; }
+#di-panel::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+
+.panel-header {
+    padding: 16px;
+    border-bottom: 1px solid #21262d;
+}
+
+.panel-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #58a6ff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.panel-version {
+    font-size: 11px;
+    color: #8b949e;
+    margin-top: 2px;
+}
+
+.health-banner {
+    margin: 12px 16px 0;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    background: #21262d;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    transition: all 0.3s;
+}
+
+.health-banner.healthy {
+    background: rgba(63, 185, 80, 0.1);
+    color: #3fb950;
+    border-color: rgba(63, 185, 80, 0.3);
+}
+
+.health-banner.warning {
+    background: rgba(210, 153, 34, 0.1);
+    color: #d29922;
+    border-color: rgba(210, 153, 34, 0.3);
+}
+
+.health-banner.error {
+    background: rgba(248, 81, 73, 0.1);
+    color: #f85149;
+    border-color: rgba(248, 81, 73, 0.3);
+}
+
+/* 卡片 */
+.card {
+    margin: 12px 12px 0;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.card-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+/* 状态行 */
+.status-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 12px;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-dot.success { background: #3fb950; }
+.status-dot.warning { background: #d29922; }
+.status-dot.error { background: #f85149; }
+.status-dot.info { background: #58a6ff; }
+.status-dot.neutral { background: #6e7681; }
+
+.status-label { flex: 1; color: #c9d1d9; }
+.status-value { color: #8b949e; font-weight: 500; }
+.status-value.success { color: #3fb950; }
+.status-value.warning { color: #d29922; }
+.status-value.error { color: #f85149; }
+
+/* 指标卡片并排 */
+.metric-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.metric-box {
+    flex: 1;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 10px;
+    text-align: center;
+}
+
+.metric-title {
+    font-size: 10px;
+    color: #8b949e;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.metric-number {
+    font-size: 20px;
+    font-weight: 700;
+    margin-top: 4px;
+}
+
+/* 按钮 */
+.btn {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    margin-top: 6px;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    background: #21262d;
+    color: #c9d1d9;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+}
+
+.btn:hover {
+    background: #30363d;
+    border-color: #58a6ff;
+}
+
+.btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: #1f6feb;
+    border-color: #1f6feb;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: #388bfd;
+}
+
+/* iframe 占满全屏 */
+#kimi-frame-container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    background: #0d1117;
+}
+
+#kimi-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* DeepIntent 悬浮按钮 */
+#di-fab {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    top: auto;
+    left: auto;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid #30363d;
+    border-radius: 20px;
+    background: #161b22;
+    color: #58a6ff;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    user-select: none;
+}
+
+#di-fab:hover {
+    background: #21262d;
+    border-color: #58a6ff;
+    box-shadow: 0 4px 12px rgba(88,166,255,0.15);
+}
+
+#di-fab .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #6e7681;
+    transition: background 0.3s;
+}
+
+#di-fab .dot.healthy { background: #3fb950; box-shadow: 0 0 6px rgba(63,185,80,0.5); }
+#di-fab .dot.warning { background: #d29922; box-shadow: 0 0 6px rgba(210,153,34,0.5); }
+#di-fab .dot.error { background: #f85149; box-shadow: 0 0 6px rgba(248,81,73,0.5); }
+#di-fab .dot.init { animation: pulse-dot 1.5s ease-in-out infinite; }
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* 初始化加载动画 */
+.loading-pulse {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #161b22; }
+::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }

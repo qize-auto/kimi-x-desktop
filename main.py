@@ -257,6 +257,9 @@ class MainWindow(QMainWindow):
             self.project_root = self._detect_project_root()
             self.config.project_root = self.project_root
 
+        # ── 检测 GitHub 配置 ──
+        self._detect_github()
+
         # 单一 QWebEngineView 加载本地 HTML 外壳
         self.webview = QWebEngineView()
         # 使用自定义 WebPage 捕获 console.log
@@ -338,6 +341,39 @@ class MainWindow(QMainWindow):
         self._shutdown()
         QApplication.quit()
 
+    def _detect_github(self):
+        """检测 GitHub CLI 认证状态，更新配置"""
+        try:
+            result = subprocess.run(
+                ["gh", "auth", "status"],
+                capture_output=True, text=True, timeout=10,
+            )
+            if result.returncode == 0:
+                # 解析 gh auth status 输出
+                username = None
+                for line in result.stdout.splitlines():
+                    if "Logged in to github.com" in line:
+                        parts = line.split()
+                        if "account" in parts:
+                            idx = parts.index("account")
+                            if idx + 1 < len(parts):
+                                username = parts[idx + 1]
+                if username:
+                    self.config.set_github(username=username, authenticated=True)
+                    self.logger.info(f"GitHub detected: {username}")
+                else:
+                    self.config.set_github(authenticated=True)
+                    self.logger.info("GitHub detected (unknown username)")
+            else:
+                self.config.set_github(authenticated=False)
+                self.logger.info("GitHub not configured (gh auth status failed)")
+        except FileNotFoundError:
+            self.config.set_github(authenticated=False)
+            self.logger.info("GitHub CLI (gh) not installed")
+        except Exception as e:
+            self.config.set_github(authenticated=False)
+            self.logger.debug(f"GitHub detection failed: {e}")
+
     def _start_pipeline(self):
         """启动全自动流水线"""
         # 步骤 0: 加载会话记忆
@@ -397,7 +433,9 @@ class MainWindow(QMainWindow):
     def _inject_di_status(self, result: dict):
         """通过 runJavaScript 更新 HTML 面板状态"""
         try:
-            js_data = json.dumps(result, ensure_ascii=False)
+            payload = dict(result)
+            payload["github"] = self.config.github
+            js_data = json.dumps(payload, ensure_ascii=False)
             self.webview.page().runJavaScript(f"updateDeepIntent({js_data})")
             self.logger.debug("DI status injected to web panel")
         except Exception as e:

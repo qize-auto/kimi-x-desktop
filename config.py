@@ -22,6 +22,11 @@ DEFAULT_CONFIG = {
     "hardware_profile": None,
     "deepintent_adjusted": False,
     "api_keys": {},
+    "github": {
+        "username": None,
+        "authenticated": False,
+        "default_org": None,
+    },
     "window_geometry": [80, 60, 1480, 900],
     "first_run": True,
     "last_migration_check": None,
@@ -100,6 +105,20 @@ class KimiXConfig:
 
     def get_api_key(self, name: str) -> str:
         return self._data.get("api_keys", {}).get(name, "")
+
+    @property
+    def github(self) -> dict:
+        return self._data.get("github", DEFAULT_CONFIG["github"])
+
+    def set_github(self, username: str | None = None, authenticated: bool = False, default_org: str | None = None):
+        gh = self._data.setdefault("github", {})
+        if username is not None:
+            gh["username"] = username
+        if authenticated is not None:
+            gh["authenticated"] = authenticated
+        if default_org is not None:
+            gh["default_org"] = default_org
+        self.save()
 
     @property
     def window_geometry(self) -> list:
